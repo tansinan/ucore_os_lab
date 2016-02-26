@@ -14,6 +14,20 @@ cputch(int c, int *cnt) {
     (*cnt) ++;
 }
 
+// Extra added code for LAB1 CHALLENGE 1 !
+/* *
+ * cputch_user - writes a single character @c to stdout, and it will
+ * increace the value of counter pointed by @cnt.
+ * This function doesn't access hardware directly. Instead, it uses int 80h
+ * to perform a system call.
+ * */
+static void
+cputch_user(int c, int* cnt) {
+    __asm__ volatile("movl %0, %%eax;"  :: "r"(c) );
+    __asm__ volatile("int $0x80");
+    (*cnt) ++;
+}
+
 /* *
  * vcprintf - format a string and writes it to stdout
  *
@@ -26,7 +40,15 @@ cputch(int c, int *cnt) {
 int
 vcprintf(const char *fmt, va_list ap) {
     int cnt = 0;
-    vprintfmt((void*)cputch, &cnt, fmt, ap);
+    // Extra added code for LAB1 CHALLENGE 1 !
+    volatile uint16_t currentCodeSegment;
+    __asm__ volatile ("mov %%cs, %0;" : "=m"(currentCodeSegment));
+    if((currentCodeSegment & 3) == 0) {
+        vprintfmt((void*)cputch, &cnt, fmt, ap);
+    }
+    else {
+        vprintfmt((void*)cputch_user, &cnt, fmt, ap);
+    }
     return cnt;
 }
 
@@ -75,4 +97,3 @@ getchar(void) {
         /* do nothing */;
     return c;
 }
-

@@ -188,4 +188,3 @@ __memcpy(void *dst, const void *src, size_t n) {
 #endif /* __HAVE_ARCH_MEMCPY */
 
 #endif /* !__LIBS_X86_H__ */
-

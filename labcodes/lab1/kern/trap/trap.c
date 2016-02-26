@@ -36,10 +36,13 @@ void
 idt_init(void) {
     extern uintptr_t __vectors[];
     for(int i = 0; i < 256; i++) {
-        if(i == T_SYSCALL) {
+        if(i == T_SYSCALL || i == T_SWITCH_TOK) {
             /* For system call, trap gate is used, and system call can be
             triggered from user state*/
             SETGATE(idt[i], 1, GD_KTEXT, __vectors[i], DPL_USER);
+        }
+        else if(i == T_SWITCH_TOU) {
+            SETGATE(idt[i], 1, GD_KTEXT, __vectors[i], DPL_KERNEL);
         }
         else {
             /* for interrupts, interrupt gate is used, and they are exclusive
@@ -180,8 +183,18 @@ trap_dispatch(struct trapframe *tf) {
         break;
     //LAB1 CHALLENGE 1 : YOUR CODE you should modify below codes.
     case T_SWITCH_TOU:
+        tf->tf_ds = USER_DS;
+        tf->tf_es = USER_DS;
+        tf->tf_cs = USER_CS;
+        tf->tf_ss = USER_DS;
+        break;
     case T_SWITCH_TOK:
-        panic("T_SWITCH_** ??\n");
+        tf->tf_ds = KERNEL_DS;
+        tf->tf_es = KERNEL_DS;
+        tf->tf_cs = KERNEL_CS;
+        break;
+    case T_SYSCALL:
+        cons_putc(tf->tf_regs.reg_eax);
         break;
     case IRQ_OFFSET + IRQ_IDE1:
     case IRQ_OFFSET + IRQ_IDE2:
