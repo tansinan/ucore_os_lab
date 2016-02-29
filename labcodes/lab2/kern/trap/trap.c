@@ -34,6 +34,19 @@ static struct pseudodesc idt_pd = {
 /* idt_init - initialize IDT to each of the entry points in kern/trap/vectors.S */
 void
 idt_init(void) {
+    extern uintptr_t __vectors[];
+    for(int i = 0; i < 256; i++) {
+        if(i == T_SYSCALL || i == T_SWITCH_TOK) {
+            SETGATE(idt[i], 1, GD_KTEXT, __vectors[i], DPL_USER);
+        }
+        else if(i == T_SWITCH_TOU) {
+            SETGATE(idt[i], 1, GD_KTEXT, __vectors[i], DPL_KERNEL);
+        }
+        else {
+            SETGATE(idt[i], 0, GD_KTEXT, __vectors[i], DPL_KERNEL);
+        }
+    }
+    lidt(&idt_pd);
      /* LAB1 YOUR CODE : STEP 2 */
      /* (1) Where are the entry addrs of each Interrupt Service Routine (ISR)?
       *     All ISR's entry addrs are stored in __vectors. where is uintptr_t __vectors[] ?
@@ -137,17 +150,24 @@ print_regs(struct pushregs *regs) {
 /* trap_dispatch - dispatch based on what type of trap occurred */
 static void
 trap_dispatch(struct trapframe *tf) {
-    char c;
+  static int timer_count = 0;
+  char c;
 
-    switch (tf->tf_trapno) {
-    case IRQ_OFFSET + IRQ_TIMER:
-        /* LAB1 YOUR CODE : STEP 3 */
-        /* handle the timer interrupt */
-        /* (1) After a timer interrupt, you should record this event using a global variable (increase it), such as ticks in kern/driver/clock.c
-         * (2) Every TICK_NUM cycle, you can print some info using a funciton, such as print_ticks().
-         * (3) Too Simple? Yes, I think so!
-         */
-        break;
+  switch (tf->tf_trapno) {
+  case IRQ_OFFSET + IRQ_TIMER:
+      timer_count++;
+      if(timer_count == TICK_NUM)
+      {
+          timer_count = 0;
+          print_ticks();
+      }
+      /* LAB1 YOUR CODE : STEP 3 */
+      /* handle the timer interrupt */
+      /* (1) After a timer interrupt, you should record this event using a global variable (increase it), such as ticks in kern/driver/clock.c
+       * (2) Every TICK_NUM cycle, you can print some info using a funciton, such as print_ticks().
+       * (3) Too Simple? Yes, I think so!
+       */
+      break;
     case IRQ_OFFSET + IRQ_COM1:
         c = cons_getc();
         cprintf("serial [%03d] %c\n", c, c);
@@ -184,4 +204,3 @@ trap(struct trapframe *tf) {
     // dispatch based on what type of trap occurred
     trap_dispatch(tf);
 }
-
