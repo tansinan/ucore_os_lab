@@ -293,6 +293,24 @@ read_eip(void) {
  * */
 void
 print_stackframe(void) {
+    const int ASSUMED_ARGUMENT_COUNT = 4;
+    void** current_ebp = (void**)read_ebp();
+    void* return_address = (void*)read_eip();
+    while(current_ebp != NULL)
+    {
+        cprintf("ebp:%08x ", current_ebp);
+        cprintf("eip:%08x ", return_address);
+        cprintf("args:");
+        for(int i = 0; i < ASSUMED_ARGUMENT_COUNT; i++)
+        {
+            cprintf("%08x", *(current_ebp + 2 + i));
+            if(i != ASSUMED_ARGUMENT_COUNT - 1) cprintf(" ");
+        }
+        cprintf("\n");
+        print_debuginfo((uintptr_t)return_address - 1);
+        return_address = *(current_ebp + 1);
+        current_ebp = (void**)*current_ebp;
+    }
      /* LAB1 YOUR CODE : STEP 1 */
      /* (1) call read_ebp() to get the value of ebp. the type is (uint32_t);
       * (2) call read_eip() to get the value of eip. the type is (uint32_t);
@@ -306,4 +324,3 @@ print_stackframe(void) {
       *                   the calling funciton's ebp = ss:[ebp]
       */
 }
-

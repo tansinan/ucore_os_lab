@@ -36,6 +36,23 @@ static struct pseudodesc idt_pd = {
 /* idt_init - initialize IDT to each of the entry points in kern/trap/vectors.S */
 void
 idt_init(void) {
+    extern uintptr_t __vectors[];
+    for(int i = 0; i < 256; i++) {
+        if(i == T_SYSCALL || i == T_SWITCH_TOK) {
+            /* For system call, trap gate is used, and system call can be
+            triggered from user state*/
+            SETGATE(idt[i], 1, GD_KTEXT, __vectors[i], DPL_USER);
+        }
+        else if(i == T_SWITCH_TOU) {
+            SETGATE(idt[i], 1, GD_KTEXT, __vectors[i], DPL_KERNEL);
+        }
+        else {
+            /* for interrupts, interrupt gate is used, and they are exclusive
+            for kernel. */
+            SETGATE(idt[i], 0, GD_KTEXT, __vectors[i], DPL_KERNEL);
+        }
+    }
+    lidt(&idt_pd);
      /* LAB1 YOUR CODE : STEP 2 */
      /* (1) Where are the entry addrs of each Interrupt Service Routine (ISR)?
       *     All ISR's entry addrs are stored in __vectors. where is uintptr_t __vectors[] ?
@@ -164,6 +181,7 @@ extern struct mm_struct *check_mm_struct;
 
 static void
 trap_dispatch(struct trapframe *tf) {
+    static int timer_count = 0;
     char c;
 
     int ret;
@@ -177,9 +195,15 @@ trap_dispatch(struct trapframe *tf) {
         break;
     case IRQ_OFFSET + IRQ_TIMER:
 #if 0
-    LAB3 : If some page replacement algorithm(such as CLOCK PRA) need tick to change the priority of pages, 
-    then you can add code here. 
+    LAB3 : If some page replacement algorithm(such as CLOCK PRA) need tick to change the priority of pages,
+    then you can add code here.
 #endif
+        timer_count++;
+        if(timer_count == TICK_NUM)
+        {
+            timer_count = 0;
+            print_ticks();
+        }
         /* LAB1 YOUR CODE : STEP 3 */
         /* handle the timer interrupt */
         /* (1) After a timer interrupt, you should record this event using a global variable (increase it), such as ticks in kern/driver/clock.c
@@ -223,4 +247,3 @@ trap(struct trapframe *tf) {
     // dispatch based on what type of trap occurred
     trap_dispatch(tf);
 }
-
