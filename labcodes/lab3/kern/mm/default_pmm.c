@@ -127,6 +127,7 @@ default_free_pages(struct Page *base, size_t n) {
         if(base < page) {
             found_free_page_after = 1;
             free_page_after = page;
+            break;
         }
     }
     if(found_free_page_after) {

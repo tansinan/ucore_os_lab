@@ -127,6 +127,7 @@ default_free_pages(struct Page *base, size_t n) {
         if(base < page) {
             found_free_page_after = 1;
             free_page_after = page;
+            break;
         }
     }
     if(found_free_page_after) {
@@ -215,7 +216,7 @@ basic_check(void) {
     free_page(p2);
 }
 
-// LAB2: below code is used to check the first fit allocation algorithm (your EXERCISE 1) 
+// LAB2: below code is used to check the first fit allocation algorithm (your EXERCISE 1)
 // NOTICE: You SHOULD NOT CHANGE basic_check, default_check functions!
 static void
 default_check(void) {
