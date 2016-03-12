@@ -311,7 +311,7 @@ print_stackframe(void) {
         return_address = *(current_ebp + 1);
         current_ebp = (void**)*current_ebp;
     }
-     /* LAB1 YOUR CODE : STEP 1 */
+     /* LAB1 2013011720 : STEP 1 */
      /* (1) call read_ebp() to get the value of ebp. the type is (uint32_t);
       * (2) call read_eip() to get the value of eip. the type is (uint32_t);
       * (3) from 0 .. STACKFRAME_DEPTH
