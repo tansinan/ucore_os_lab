@@ -235,7 +235,8 @@ trap_dispatch(struct trapframe *tf) {
         if(timer_count == TICK_NUM)
         {
             timer_count = 0;
-            print_ticks();
+            //print_ticks();
+            current->need_resched = 1;
         }
         /* LAB1 YOUR CODE : STEP 3 */
         /* handle the timer interrupt */
