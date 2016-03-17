@@ -119,6 +119,8 @@ alloc_proc(void) {
         proc->cptr = NULL;
         proc->yptr = NULL;
         proc->optr = NULL;
+        proc->rq = NULL;
+        list_init(&proc->run_link);
      //LAB5 YOUR CODE : (update LAB4 steps)
     /*
      * below fields(add in LAB5) in proc_struct need to be initialized
