@@ -109,6 +109,7 @@ stride_dequeue(struct run_queue *rq, struct proc_struct *proc) {
  */
 static struct proc_struct *
 stride_pick_next(struct run_queue *rq) {
+    if(rq->lab6_run_pool == NULL) return NULL;
     struct proc_struct *proc = le2proc(rq->lab6_run_pool, lab6_run_pool);
     if(proc->lab6_priority == 0) proc->lab6_stride += BIG_STRIDE;
     else proc->lab6_stride += BIG_STRIDE / proc->lab6_priority;
