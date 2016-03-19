@@ -123,6 +123,7 @@ alloc_proc(void) {
         proc->time_slice = 0;
         proc->lab6_stride = 0;
         proc->lab6_priority = 0;
+        //list_init(&proc->run_link);
      //LAB5 YOUR CODE : (update LAB4 steps)
     /*
      * below fields(add in LAB5) in proc_struct need to be initialized
@@ -842,7 +843,7 @@ init_main(void *arg) {
     if (pid <= 0) {
         panic("create user_main failed.\n");
     }
- extern void check_sync(void); 
+ extern void check_sync(void);
     check_sync();                // check philosopher sync problem
 
     while (do_wait(0, NULL) == 0) {
