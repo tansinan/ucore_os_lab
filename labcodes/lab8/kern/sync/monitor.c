@@ -5,7 +5,7 @@
 
 
 // Initialize monitor.
-void     
+void
 monitor_init (monitor_t * mtp, size_t num_cv) {
     int i;
     assert(num_cv>0);
@@ -22,11 +22,18 @@ monitor_init (monitor_t * mtp, size_t num_cv) {
     }
 }
 
-// Unlock one of threads waiting on the condition variable. 
-void 
+// Unlock one of threads waiting on the condition variable.
+void
 cond_signal (condvar_t *cvp) {
    //LAB7 EXERCISE1: YOUR CODE
-   cprintf("cond_signal begin: cvp %x, cvp->count %d, cvp->owner->next_count %d\n", cvp, cvp->count, cvp->owner->next_count);  
+    cprintf("cond_signal begin: cvp %x, cvp->count %d, cvp->owner->next_count %d\n", cvp, cvp->count, cvp->owner->next_count);
+    if(cvp->count > 0)
+    {
+        cvp->owner->next_count++;
+        up(&cvp->sem);
+        down(&cvp->owner->next);
+        cvp->owner->next_count--;
+    }
   /*
    *      cond_signal(cv) {
    *          if(cv.count>0) {
@@ -37,16 +44,27 @@ cond_signal (condvar_t *cvp) {
    *          }
    *       }
    */
-   cprintf("cond_signal end: cvp %x, cvp->count %d, cvp->owner->next_count %d\n", cvp, cvp->count, cvp->owner->next_count);
+    cprintf("cond_signal end: cvp %x, cvp->count %d, cvp->owner->next_count %d\n", cvp, cvp->count, cvp->owner->next_count);
 }
 
-// Suspend calling thread on a condition variable waiting for condition Atomically unlocks 
+// Suspend calling thread on a condition variable waiting for condition Atomically unlocks
 // mutex and suspends calling thread on conditional variable after waking up locks mutex. Notice: mp is mutex semaphore for monitor's procedures
 void
 cond_wait (condvar_t *cvp) {
     //LAB7 EXERCISE1: YOUR CODE
     cprintf("cond_wait begin:  cvp %x, cvp->count %d, cvp->owner->next_count %d\n", cvp, cvp->count, cvp->owner->next_count);
-   /*
+    cvp->count++;
+    if(cvp->owner->next_count > 0)
+    {
+      up(&cvp->owner->next);
+    }
+    else
+    {
+      up(&cvp->owner->mutex);
+    }
+    down(&cvp->sem);
+    cvp->count--;
+    /*
     *         cv.count ++;
     *         if(mt.next_count>0)
     *            signal(mt.next)
