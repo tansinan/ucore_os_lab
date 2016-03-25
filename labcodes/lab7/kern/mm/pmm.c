@@ -445,6 +445,7 @@ page_remove_pte(pde_t *pgdir, uintptr_t la, pte_t *ptep) {
     page_ref_dec(page);
     if(page->ref == 0)
         free_page(page);
+    *ptep = 0;
     tlb_invalidate(pgdir, la);
 }
 

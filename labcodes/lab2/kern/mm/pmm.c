@@ -424,12 +424,13 @@ page_remove_pte(pde_t *pgdir, uintptr_t la, pte_t *ptep) {
      * DEFINEs:
      *   PTE_P           0x001                   // page table/directory entry flags bit : Present
      */
-     if(!((*ptep) & PTE_P)) return;
-     struct Page *page = pte2page(*ptep);
-     page_ref_dec(page);
-     if(page->ref == 0)
-         free_page(page);
-     tlb_invalidate(pgdir, la);
+    if(!((*ptep) & PTE_P)) return;
+    struct Page *page = pte2page(*ptep);
+    page_ref_dec(page);
+    if(page->ref == 0)
+        free_page(page);
+    *ptep = 0;
+    tlb_invalidate(pgdir, la);
 }
 
 //page_remove - free an Page which is related linear address la and has an validated pte
