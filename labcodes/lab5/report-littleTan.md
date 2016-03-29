@@ -21,3 +21,11 @@ COW（Copy On Write，写时复制）是一种能够减少内存操作的复制�
 关于fork，exec(ve)，这两个系统调用，它们和新进程的创建是密切相关的。事实上新进程的创建（除了最开始的idle和init），都是通过fork产生的，fork出的两个进程用户空间地址内容是完全相同的，唯一的区别就在于一个进程fork的返回值（放在eax寄存器里）是0，另一个则是1。至于进程接下来要利用这个差异做什么就不一定了。不过其中很可能的一件事就是其中一个进程理解执行execve系统调用——这将导致其中进程的内存空间被回收，并重新装入指定的执行文件的内容。
 
 wait（或waitpid）和exit主要是关于进程状态切换的。该函数将导致进程陷入PROC_ZOMBIE状态，并且其内存空间被回收。进程的退出将会唤醒另外一个进程，通常优先考虑该进程的父进程。do_wait将导致进程陷入PROC_SLEEPING状态，等待某个子进程（或者，用waitpid可以指定等待进程的pid），直到该进程进入PROC_ZOMBIE状态。wait系统调用真正的导致进入zombie状态的进程被彻底删除，其所有资源均被释放。
+
+进程状态的切换关系如下问所属（字符画不方便，用文本描述）
+alloc_proc创建进程，此时进程属于PROC_UNINIT（未初始化状态）
+之后经过proc_init, wakeup_proc函数调用，进程进入PROC_RUNNABLE
+由于调度机制，进程在自己的时间片内会经由proc_run使得进程真正运行
+try_free_pages, do_wait, do_sleep函数可以是进程进入PROC_SLEEPING状态
+而wakeup_proc唤醒进程使之回到PROC_RUNNABLE状态
+最终do_exit使得进程进入僵尸状态PROC_ZOMBIE等待回收
